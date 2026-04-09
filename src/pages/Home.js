@@ -8,7 +8,6 @@ import heroSecondary from '../assets/hero-secondary.jpg';
 import categoryRoupas from '../assets/category-roupas.jpg';
 import categoryAcessorios from '../assets/category-acessorios.jpg';
 
-const productsTitle = '\u0044\u0065\u0073\u0074\u0061\u0071\u0075\u0065\u0073';
 const featuredProducts = products.slice(0, 4);
 
 export default function Home() {
