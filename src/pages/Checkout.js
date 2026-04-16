@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import checkoutBanner from '../assets/checkout-banner.jpg';
@@ -25,7 +25,16 @@ function formatZip(zip) {
 }
 
 export default function Checkout() {
-  const { cartItems, subtotal, shipping, total } = useCart();
+  const {
+    cartItems,
+    subtotal,
+    shipping,
+    total,
+    zip,
+    setZip,
+    calculateShipping,
+    clearShipping,
+  } = useCart();
 
   const [form, setForm] = useState({
     name: '',
@@ -33,12 +42,89 @@ export default function Checkout() {
     address: '',
     city: '',
     state: '',
-    zip: '',
+    zip: zip || '',
   });
 
   const [errors, setErrors] = useState({});
   const [zipLoading, setZipLoading] = useState(false);
   const [zipSuccess, setZipSuccess] = useState('');
+
+  const fetchAddressByZip = async (zipValue) => {
+    const clean = cleanZip(zipValue);
+
+    if (clean.length !== 8) {
+      setErrors((prev) => ({
+        ...prev,
+        zip: 'Informe um CEP válido com 8 números.',
+      }));
+      setZipSuccess('');
+      clearShipping();
+      return;
+    }
+
+    try {
+      setZipLoading(true);
+      setZipSuccess('');
+
+      const response = await fetch(`https://viacep.com.br/ws/${clean}/json/`);
+      const data = await response.json();
+
+      if (data.erro) {
+        setErrors((prev) => ({
+          ...prev,
+          zip: 'CEP não encontrado.',
+        }));
+        setZipSuccess('');
+        clearShipping();
+        return;
+      }
+
+      const formattedZip = formatZip(clean);
+
+      setZip(formattedZip);
+      calculateShipping(formattedZip, subtotal);
+
+      setForm((prev) => ({
+        ...prev,
+        zip: formattedZip,
+        city: data.localidade || '',
+        state: data.uf || '',
+        address: data.logradouro ? data.logradouro : prev.address,
+      }));
+
+      setErrors((prev) => ({
+        ...prev,
+        zip: '',
+        city: '',
+        state: '',
+        address: '',
+      }));
+
+      setZipSuccess('CEP encontrado e frete calculado com sucesso.');
+    } catch (error) {
+      setErrors((prev) => ({
+        ...prev,
+        zip: 'Erro ao buscar o CEP.',
+      }));
+      setZipSuccess('');
+      clearShipping();
+    } finally {
+      setZipLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!zip) return;
+
+    setForm((prev) => ({
+      ...prev,
+      zip,
+    }));
+
+    if (cleanZip(zip).length === 8) {
+      fetchAddressByZip(zip);
+    }
+  }, [zip]);
 
   const handleChange = ({ target }) => {
     const { name, value } = target;
@@ -46,7 +132,12 @@ export default function Checkout() {
 
     if (name === 'zip') {
       newValue = formatZip(value);
+      setZip(newValue);
       setZipSuccess('');
+
+      if (cleanZip(newValue).length !== 8) {
+        clearShipping();
+      }
     }
 
     setForm((prev) => ({
@@ -58,62 +149,6 @@ export default function Checkout() {
       ...prev,
       [name]: '',
     }));
-  };
-
-  const fetchAddressByZip = async (zipValue) => {
-    const zip = cleanZip(zipValue);
-
-    if (zip.length !== 8) {
-      setErrors((prev) => ({
-        ...prev,
-        zip: 'Informe um CEP válido com 8 números.',
-      }));
-      setZipSuccess('');
-      return;
-    }
-
-    try {
-      setZipLoading(true);
-      setZipSuccess('');
-
-      const response = await fetch(`https://viacep.com.br/ws/${zip}/json/`);
-      const data = await response.json();
-
-      if (data.erro) {
-        setErrors((prev) => ({
-          ...prev,
-          zip: 'CEP não encontrado.',
-        }));
-        setZipSuccess('');
-        return;
-      }
-
-      setForm((prev) => ({
-        ...prev,
-        zip: formatZip(zip),
-        city: data.localidade || '',
-        state: data.uf || '',
-        address: data.logradouro ? data.logradouro : prev.address,
-      }));
-
-      setErrors((prev) => ({
-        ...prev,
-        zip: '',
-        city: '',
-        state: '',
-        address: data.logradouro ? '' : prev.address ? '' : prev.address,
-      }));
-
-      setZipSuccess('CEP encontrado com sucesso.');
-    } catch (error) {
-      setErrors((prev) => ({
-        ...prev,
-        zip: 'Erro ao buscar o CEP.',
-      }));
-      setZipSuccess('');
-    } finally {
-      setZipLoading(false);
-    }
   };
 
   const validateForm = () => {
@@ -133,8 +168,8 @@ export default function Checkout() {
 
     if (!form.address.trim()) {
       newErrors.address = 'Informe seu endereço.';
-    } else if (form.address.trim().length < 15) {
-      newErrors.address = 'O endereço precisa ter pelo menos 15 caracteres.';
+    } else if (form.address.trim().length < 5) {
+      newErrors.address = 'Informe seu endereço corretamente.';
     }
 
     if (!form.zip.trim()) {
@@ -151,6 +186,10 @@ export default function Checkout() {
       newErrors.state = 'O estado é obrigatório.';
     }
 
+    if (cleanZip(form.zip).length !== 8 || shipping <= 0) {
+      newErrors.zip = 'Calcule o frete informando um CEP válido.';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -158,7 +197,7 @@ export default function Checkout() {
   const handleSimulatePayment = async (event) => {
     event.preventDefault();
 
-    if (cleanZip(form.zip).length === 8 && (!form.city.trim() || !form.state.trim())) {
+    if (cleanZip(form.zip).length === 8 && shipping <= 0) {
       await fetchAddressByZip(form.zip);
     }
 
@@ -254,7 +293,9 @@ export default function Checkout() {
                 maxLength={9}
               />
               {errors.zip && <span className="input-error">{errors.zip}</span>}
-              {!errors.zip && zipSuccess && <span className="input-success">{zipSuccess}</span>}
+              {!errors.zip && zipSuccess && (
+                <span className="input-success">{zipSuccess}</span>
+              )}
             </div>
           </div>
 
@@ -301,7 +342,11 @@ export default function Checkout() {
 
           <div className="summary-row">
             <span>Frete</span>
-            <strong>{formatPrice(shipping)}</strong>
+            <strong>
+              {cleanZip(form.zip).length === 8 && shipping > 0
+                ? formatPrice(shipping)
+                : 'A calcular'}
+            </strong>
           </div>
 
           <div className="summary-row total">

@@ -732,6 +732,7 @@ input {
   object-fit: cover;
   border-radius: 28px;
   }
+  
 
   .showcase-card.wide-card.showcase-flex {
     grid-template-columns: 1fr;
@@ -811,3 +812,59 @@ input {
   border-radius: 22px 22px 0 0;
 }
 
+.shipping-box {
+  margin: 20px 0 18px;
+}
+
+.shipping-box label {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.shipping-form {
+  display: flex;
+  gap: 10px;
+}
+
+.shipping-form input {
+  flex: 1;
+  height: 48px;
+  padding: 0 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: #fff;
+  outline: none;
+}
+
+.shipping-form input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.shipping-form button {
+  border: none;
+  border-radius: 14px;
+  padding: 0 18px;
+  height: 48px;
+  background: var(--gold);
+  color: #111;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.shipping-form button:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.03);
+}
+
+.shipping-error {
+  margin-top: 10px;
+  font-size: 0.9rem;
+  color: #ff7a7a;
+}
