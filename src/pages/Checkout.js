@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-import checkoutBanner from '../assets/checkout-banner.jpg';
+import checkoutBanner from '../assets/checkout.png';
 
 function formatPrice(value) {
   return value.toLocaleString('pt-BR', {
@@ -22,6 +22,42 @@ function formatZip(zip) {
   const numbers = zip.replace(/\D/g, '').slice(0, 8);
   if (numbers.length <= 5) return numbers;
   return `${numbers.slice(0, 5)}-${numbers.slice(5)}`;
+}
+
+function getDeliveryEstimate(zip) {
+  const clean = cleanZip(zip);
+
+  if (clean.length !== 8) return null;
+
+  if (clean.startsWith('88')) {
+    return {
+      service: 'Entrega padrão',
+      time: '2 a 4 dias úteis',
+      note: 'Região atendida com prazo reduzido.',
+    };
+  }
+
+  if (clean.startsWith('89')) {
+    return {
+      service: 'Entrega padrão',
+      time: '3 a 5 dias úteis',
+      note: 'Prazo estimado para entrega com rastreamento.',
+    };
+  }
+
+  if (clean.startsWith('90')) {
+    return {
+      service: 'Entrega padrão',
+      time: '4 a 6 dias úteis',
+      note: 'Envio com acompanhamento do pedido.',
+    };
+  }
+
+  return {
+    service: 'Entrega padrão',
+    time: '5 a 8 dias úteis',
+    note: 'Prazo médio para capitais e outras regiões.',
+  };
 }
 
 export default function Checkout() {
@@ -48,6 +84,15 @@ export default function Checkout() {
   const [errors, setErrors] = useState({});
   const [zipLoading, setZipLoading] = useState(false);
   const [zipSuccess, setZipSuccess] = useState('');
+  const [paymentLoading, setPaymentLoading] = useState(false);
+
+  const itemsCount = useMemo(
+    () => cartItems.reduce((acc, item) => acc + item.quantity, 0),
+    [cartItems]
+  );
+
+  const hasCalculatedShipping = cleanZip(form.zip).length === 8 && shipping > 0;
+  const deliveryEstimate = hasCalculatedShipping ? getDeliveryEstimate(form.zip) : null;
 
   const fetchAddressByZip = useCallback(
     async (zipValue) => {
@@ -101,7 +146,7 @@ export default function Checkout() {
           address: '',
         }));
 
-        setZipSuccess('CEP encontrado e frete calculado com sucesso.');
+        setZipSuccess('Entrega validada com sucesso.');
       } catch (error) {
         setErrors((prev) => ({
           ...prev,
@@ -207,7 +252,12 @@ export default function Checkout() {
     const isValid = validateForm();
     if (!isValid) return;
 
-    window.open('https://www.mercadopago.com.br/', '_blank', 'noopener,noreferrer');
+    try {
+      setPaymentLoading(true);
+      window.open('https://www.mercadopago.com.br/', '_blank', 'noopener,noreferrer');
+    } finally {
+      setPaymentLoading(false);
+    }
   };
 
   if (!cartItems.length) {
@@ -229,19 +279,30 @@ export default function Checkout() {
         <h1>Um fluxo final elegante ajuda o cliente a confiar e concluir a compra.</h1>
       </div>
 
-      <div className="checkout-banner">
+      <div className="checkout-banner premium-checkout-banner">
         <img src={checkoutBanner} alt="Checkout Monarch Store" />
+        <div className="checkout-banner-overlay">
+        </div>
       </div>
 
       <div className="checkout-layout top-gap">
-        <form className="checkout-form" noValidate>
-          <h2>Dados do cliente</h2>
+        <form className="checkout-form premium-checkout-form" noValidate>
+          <div className="form-section-head">
+            <div>
+              <span className="section-kicker">Dados do cliente</span>
+              <h2>Informações para entrega</h2>
+              <p>Preencha os dados para continuar com segurança e agilidade.</p>
+            </div>
+            <div className="checkout-step-badge">Etapa 1 de 2</div>
+          </div>
 
           <div className="input-grid two-cols">
             <div className="field-group">
+              <label htmlFor="name">Nome completo</label>
               <input
+                id="name"
                 name="name"
-                placeholder="Nome completo"
+                placeholder="Seu nome completo"
                 value={form.name}
                 onChange={handleChange}
                 className={errors.name ? 'input-invalid' : ''}
@@ -250,10 +311,12 @@ export default function Checkout() {
             </div>
 
             <div className="field-group">
+              <label htmlFor="email">E-mail</label>
               <input
+                id="email"
                 name="email"
                 type="email"
-                placeholder="E-mail"
+                placeholder="seuemail@exemplo.com"
                 value={form.email}
                 onChange={handleChange}
                 className={errors.email ? 'input-invalid' : ''}
@@ -263,9 +326,11 @@ export default function Checkout() {
           </div>
 
           <div className="field-group">
+            <label htmlFor="address">Endereço</label>
             <input
+              id="address"
               name="address"
-              placeholder="Endereço"
+              placeholder="Rua, avenida ou número"
               value={form.address}
               onChange={handleChange}
               className={errors.address ? 'input-invalid' : ''}
@@ -273,9 +338,11 @@ export default function Checkout() {
             {errors.address && <span className="input-error">{errors.address}</span>}
           </div>
 
-          <div className="input-grid two-cols">
+          <div className="input-grid three-cols">
             <div className="field-group">
+              <label htmlFor="city">Cidade</label>
               <input
+                id="city"
                 name="city"
                 placeholder="Cidade"
                 value={form.city}
@@ -286,15 +353,40 @@ export default function Checkout() {
             </div>
 
             <div className="field-group">
+              <label htmlFor="state">Estado</label>
               <input
+                id="state"
+                name="state"
+                placeholder="UF"
+                value={form.state}
+                onChange={handleChange}
+                className={errors.state ? 'input-invalid' : ''}
+              />
+              {errors.state && <span className="input-error">{errors.state}</span>}
+            </div>
+
+            <div className="field-group">
+              <label htmlFor="zip">CEP</label>
+              <input
+                id="zip"
                 name="zip"
-                placeholder="CEP"
+                placeholder="00000-000"
                 value={form.zip}
                 onChange={handleChange}
                 onBlur={() => fetchAddressByZip(form.zip)}
                 className={errors.zip ? 'input-invalid' : ''}
                 maxLength={9}
               />
+              <div className="field-helper-row">
+                <a
+                  href="https://buscacepinter.correios.com.br/app/endereco/index.php"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="field-helper-link"
+                >
+                  Não sei meu CEP
+                </a>
+              </div>
               {errors.zip && <span className="input-error">{errors.zip}</span>}
               {!errors.zip && zipSuccess && (
                 <span className="input-success">{zipSuccess}</span>
@@ -302,41 +394,90 @@ export default function Checkout() {
             </div>
           </div>
 
-          <div className="field-group">
-            <input
-              name="state"
-              placeholder="Estado"
-              value={form.state}
-              onChange={handleChange}
-              className={errors.state ? 'input-invalid' : ''}
-            />
-            {errors.state && <span className="input-error">{errors.state}</span>}
-          </div>
+          {hasCalculatedShipping && deliveryEstimate && (
+            <div className="delivery-confirm-card">
+              <div className="delivery-confirm-top">
+                <strong>{deliveryEstimate.service}</strong>
+                <span>{formatPrice(shipping)}</span>
+              </div>
 
-          <div className="payment-box">
-            <h3>Pagamento</h3>
-            <p>Estrutura pronta para integração com Mercado Pago, cartão, Pix ou checkout transparente.</p>
+              <div className="delivery-confirm-grid">
+                <div>
+                  <small>Entrega estimada</small>
+                  <strong>{deliveryEstimate.time}</strong>
+                </div>
+                <div>
+                  <small>CEP confirmado</small>
+                  <strong>{form.zip}</strong>
+                </div>
+                <div>
+                  <small>Destino</small>
+                  <strong>
+                    {form.city || 'Cidade'}{form.state ? ` - ${form.state}` : ''}
+                  </strong>
+                </div>
+              </div>
+
+              <p>{deliveryEstimate.note}</p>
+            </div>
+          )}
+
+          <div className="payment-box premium-payment-box">
+            <div className="payment-box-head">
+              <div>
+                <span className="section-kicker">Pagamento</span>
+                <h3>Finalize com segurança</h3>
+              </div>
+              <div className="checkout-step-badge">Etapa 2 de 2</div>
+            </div>
+
+            <p>
+              Estrutura pronta para integração com Mercado Pago, Pix, cartão e checkout transparente.
+            </p>
+
+            <div className="payment-methods-preview">
+              <span>Pix</span>
+              <span>Cartão</span>
+              <span>Mercado Pago</span>
+              <span>Ambiente protegido</span>
+            </div>
 
             <button
               type="button"
-              className="primary-button"
+              className="primary-button premium-checkout-button"
               onClick={handleSimulatePayment}
-              disabled={zipLoading}
+              disabled={zipLoading || paymentLoading || !hasCalculatedShipping}
             >
-              {zipLoading ? 'Finalizar Compra...' : 'Simular pagamento'}
+              {zipLoading || paymentLoading
+                ? 'Processando...'
+                : hasCalculatedShipping
+                ? 'Finalizar compra'
+                : 'Calcule o frete para continuar'}
             </button>
           </div>
         </form>
 
-        <aside className="summary-card">
-          <h3>Resumo do pedido</h3>
-
-          {cartItems.map((item) => (
-            <div key={`${item.id}-${item.size}`} className="summary-product">
-              <span>{item.name} x {item.quantity}</span>
-              <strong>{formatPrice(item.price * item.quantity)}</strong>
+        <aside className="summary-card premium-summary-card">
+          <div className="summary-head">
+            <div>
+              <h3>Resumo do pedido</h3>
+              <span>{itemsCount} {itemsCount === 1 ? 'item' : 'itens'} no carrinho</span>
             </div>
-          ))}
+          </div>
+
+          <div className="summary-products-mini">
+            {cartItems.map((item) => (
+              <div key={`${item.id}-${item.size}`} className="summary-product premium-summary-product">
+                <div>
+                  <span>{item.name}</span>
+                  <small>
+                    {item.size} · {item.quantity} {item.quantity === 1 ? 'unidade' : 'unidades'}
+                  </small>
+                </div>
+                <strong>{formatPrice(item.price * item.quantity)}</strong>
+              </div>
+            ))}
+          </div>
 
           <div className="summary-row">
             <span>Subtotal</span>
@@ -344,11 +485,9 @@ export default function Checkout() {
           </div>
 
           <div className="summary-row">
-            <span>Frete</span>
+            <span>Entrega</span>
             <strong>
-              {cleanZip(form.zip).length === 8 && shipping > 0
-                ? formatPrice(shipping)
-                : 'A calcular'}
+              {hasCalculatedShipping ? formatPrice(shipping) : 'A calcular'}
             </strong>
           </div>
 
@@ -356,6 +495,23 @@ export default function Checkout() {
             <span>Total</span>
             <strong>{formatPrice(total)}</strong>
           </div>
+
+          {hasCalculatedShipping && deliveryEstimate && (
+            <div className="summary-delivery-note">
+              <strong>{deliveryEstimate.service}</strong>
+              <span>{deliveryEstimate.time}</span>
+            </div>
+          )}
+
+          <div className="trust-list">
+            <div className="trust-item">🔒 Compra segura</div>
+            <div className="trust-item">💳 Pagamento protegido</div>
+            <div className="trust-item">📦 Entrega com acompanhamento</div>
+          </div>
+
+          <Link to="/loja" className="secondary-button full-button">
+            Continuar comprando
+          </Link>
         </aside>
       </div>
     </section>

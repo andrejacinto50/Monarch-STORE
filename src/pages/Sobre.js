@@ -1,5 +1,5 @@
 import React from 'react';
-import aboutBrand from '../assets/about-brand.jpg';
+import aboutBrand from '../assets/destacar.png';
 
 export default function Sobre() {
   return (

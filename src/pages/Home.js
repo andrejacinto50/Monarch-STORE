@@ -3,10 +3,10 @@ import { Link } from 'react-router-dom';
 
 import ProductCard from '../components/ProductCard';
 import { benefits, products } from '../data/products';
-import heroFashion from '../assets/hero-fashion.jpg';
-import heroSecondary from '../assets/hero-secondary.jpg';
-import categoryRoupas from '../assets/category-roupas.jpg';
-import categoryAcessorios from '../assets/category-acessorios.jpg';
+import heroFashion from '../assets/roupacess.avif';
+import heroSecondary from '../assets/editorial.jpg';
+import categoryRoupas from '../assets/roupas.jpg';
+import categoryAcessorios from '../assets/acessorios.jpg';
 
 const featuredProducts = products.slice(0, 4);
 

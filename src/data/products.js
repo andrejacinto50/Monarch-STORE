@@ -1,7 +1,7 @@
-import shirt from '../assets/product-shirt.jpg';
-import jacket from '../assets/product-jacket.jpg';
-import watch from '../assets/product-watch.jpg';
-import bag from '../assets/product-bag.jpg';
+import shirt from '../assets/preto.png';
+import jacket from '../assets/noiteurbana.png';
+import watch from '../assets/pacessorios.png';
+import bag from '../assets/pacessorios.png';
 
 export const products = [
   {
