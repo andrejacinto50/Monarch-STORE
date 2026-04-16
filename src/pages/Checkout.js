@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import checkoutBanner from '../assets/checkout-banner.jpg';
@@ -49,69 +49,72 @@ export default function Checkout() {
   const [zipLoading, setZipLoading] = useState(false);
   const [zipSuccess, setZipSuccess] = useState('');
 
-  const fetchAddressByZip = async (zipValue) => {
-    const clean = cleanZip(zipValue);
+  const fetchAddressByZip = useCallback(
+    async (zipValue) => {
+      const clean = cleanZip(zipValue);
 
-    if (clean.length !== 8) {
-      setErrors((prev) => ({
-        ...prev,
-        zip: 'Informe um CEP válido com 8 números.',
-      }));
-      setZipSuccess('');
-      clearShipping();
-      return;
-    }
-
-    try {
-      setZipLoading(true);
-      setZipSuccess('');
-
-      const response = await fetch(`https://viacep.com.br/ws/${clean}/json/`);
-      const data = await response.json();
-
-      if (data.erro) {
+      if (clean.length !== 8) {
         setErrors((prev) => ({
           ...prev,
-          zip: 'CEP não encontrado.',
+          zip: 'Informe um CEP válido com 8 números.',
         }));
         setZipSuccess('');
         clearShipping();
         return;
       }
 
-      const formattedZip = formatZip(clean);
+      try {
+        setZipLoading(true);
+        setZipSuccess('');
 
-      setZip(formattedZip);
-      calculateShipping(formattedZip, subtotal);
+        const response = await fetch(`https://viacep.com.br/ws/${clean}/json/`);
+        const data = await response.json();
 
-      setForm((prev) => ({
-        ...prev,
-        zip: formattedZip,
-        city: data.localidade || '',
-        state: data.uf || '',
-        address: data.logradouro ? data.logradouro : prev.address,
-      }));
+        if (data.erro) {
+          setErrors((prev) => ({
+            ...prev,
+            zip: 'CEP não encontrado.',
+          }));
+          setZipSuccess('');
+          clearShipping();
+          return;
+        }
 
-      setErrors((prev) => ({
-        ...prev,
-        zip: '',
-        city: '',
-        state: '',
-        address: '',
-      }));
+        const formattedZip = formatZip(clean);
 
-      setZipSuccess('CEP encontrado e frete calculado com sucesso.');
-    } catch (error) {
-      setErrors((prev) => ({
-        ...prev,
-        zip: 'Erro ao buscar o CEP.',
-      }));
-      setZipSuccess('');
-      clearShipping();
-    } finally {
-      setZipLoading(false);
-    }
-  };
+        setZip(formattedZip);
+        calculateShipping(formattedZip, subtotal);
+
+        setForm((prev) => ({
+          ...prev,
+          zip: formattedZip,
+          city: data.localidade || '',
+          state: data.uf || '',
+          address: data.logradouro ? data.logradouro : prev.address,
+        }));
+
+        setErrors((prev) => ({
+          ...prev,
+          zip: '',
+          city: '',
+          state: '',
+          address: '',
+        }));
+
+        setZipSuccess('CEP encontrado e frete calculado com sucesso.');
+      } catch (error) {
+        setErrors((prev) => ({
+          ...prev,
+          zip: 'Erro ao buscar o CEP.',
+        }));
+        setZipSuccess('');
+        clearShipping();
+      } finally {
+        setZipLoading(false);
+      }
+    },
+    [calculateShipping, clearShipping, setZip, subtotal]
+  );
 
   useEffect(() => {
     if (!zip) return;
@@ -124,7 +127,7 @@ export default function Checkout() {
     if (cleanZip(zip).length === 8) {
       fetchAddressByZip(zip);
     }
-  }, [zip]);
+  }, [zip, fetchAddressByZip]);
 
   const handleChange = ({ target }) => {
     const { name, value } = target;
