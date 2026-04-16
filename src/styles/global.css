@@ -25,6 +25,8 @@ body {
   font-family: Arial, sans-serif;
   line-height: 1.6;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 a {
@@ -53,6 +55,22 @@ button {
 .section-space,
 .page-section {
   padding: 70px 0;
+}
+
+.page-section {
+  animation: pageFadeIn 0.32s ease;
+}
+
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .section-kicker {
@@ -142,7 +160,7 @@ button {
   border: none;
   text-decoration: none;
   cursor: pointer;
-  transition: 0.3s ease;
+  transition: 0.25s ease;
 }
 
 .cart-pill {
@@ -693,6 +711,7 @@ button {
   border: 1px solid var(--line);
   border-radius: 22px;
   margin-bottom: 18px;
+  transition: transform 0.2s ease, border-color 0.2s ease;
 }
 
 .cart-item-image {
@@ -1257,12 +1276,17 @@ button {
 
 @media (max-width: 768px) {
   .container {
-    width: min(100%, calc(100% - 24px));
+    width: min(100%, calc(100% - 20px));
   }
 
   .section-space,
   .page-section {
-    padding: 56px 0;
+    padding: 40px 0;
+  }
+
+  .site-header {
+    background: rgba(8, 8, 8, 0.94);
+    backdrop-filter: blur(14px);
   }
 
   .nav-wrap {
@@ -1270,27 +1294,30 @@ button {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 14px 0 16px;
-    gap: 14px;
+    padding: 10px 0 12px;
+    gap: 10px;
   }
 
   .brand-mark {
-    font-size: 1rem;
+    font-size: 0.98rem;
     text-align: center;
+    letter-spacing: 0.06em;
   }
 
   .main-nav {
     width: 100%;
-    gap: 14px 18px;
+    gap: 10px 14px;
     justify-content: center;
   }
 
   .main-nav a {
-    font-size: 0.95rem;
+    font-size: 0.92rem;
+    padding: 6px 0;
   }
 
   .cart-pill {
-    padding: 9px 14px;
+    padding: 8px 14px;
+    border-radius: 999px;
   }
 
   .benefits-list,
@@ -1309,7 +1336,8 @@ button {
   .product-info-panel h1,
   .showcase-text h2,
   .products-header-text h2 {
-    font-size: clamp(1.9rem, 8vw, 2.5rem);
+    font-size: clamp(1.9rem, 8vw, 2.45rem);
+    line-height: 1.08;
   }
 
   .hero-copy p,
@@ -1317,78 +1345,124 @@ button {
   .product-description,
   .showcase-text p,
   .form-section-head p {
-    font-size: 0.98rem;
+    font-size: 0.96rem;
+    line-height: 1.55;
   }
 
   .products-header {
     flex-direction: column;
     align-items: flex-start;
+    gap: 16px;
   }
 
   .hero-media img,
   .about-image,
   .product-image-panel img {
     min-height: auto;
-    height: 300px;
+    height: 280px;
     border-radius: 22px;
   }
 
-  .checkout-banner img {
-    height: 260px;
-    border-radius: 22px;
-  }
-
+  .checkout-banner img,
   .premium-checkout-banner img {
-    height: 260px;
+    height: 230px;
     border-radius: 22px;
   }
 
   .checkout-banner-overlay {
-    padding: 18px;
+    padding: 16px;
+    gap: 6px;
+  }
+
+  .checkout-banner-overlay strong {
+    max-width: 100%;
+    font-size: 1rem;
   }
 
   .showcase-card.wide-card.showcase-flex {
-    gap: 22px;
-    padding: 20px;
+    gap: 18px;
+    padding: 18px;
+    border-radius: 20px;
   }
 
   .showcase-image img {
-    height: 240px;
+    height: 220px;
     border-radius: 18px;
   }
 
+  .product-card,
+  .category-card,
+  .summary-card,
+  .checkout-form,
+  .card-surface,
+  .info-box,
+  .trust-card,
+  .cart-item,
+  .showcase-card {
+    border-radius: 20px;
+  }
+
   .product-thumb {
-    height: 260px;
+    height: 250px;
   }
 
   .category-card img {
-    height: 200px;
+    height: 190px;
+    border-radius: 20px 20px 0 0;
+  }
+
+  .product-content,
+  .category-content,
+  .summary-card,
+  .checkout-form,
+  .showcase-overlay,
+  .about-copy,
+  .card-surface,
+  .info-box,
+  .contact-grid .card-surface {
+    padding: 18px;
   }
 
   .cart-item {
     flex-direction: column;
-    gap: 16px;
-    padding: 16px;
+    gap: 14px;
+    padding: 14px;
+  }
+
+  .cart-item:active,
+  .product-card:active,
+  .category-card:active {
+    transform: scale(0.992);
   }
 
   .cart-item-image {
     width: 100%;
-    height: 280px;
-    border-radius: 18px;
+    height: 240px;
+    border-radius: 16px;
   }
 
   .cart-item-body {
     flex-direction: column;
-    gap: 16px;
+    gap: 14px;
   }
 
   .cart-actions {
     align-items: stretch;
     width: 100%;
+    gap: 10px;
   }
 
   .quantity-control {
     align-self: flex-start;
+  }
+
+  .quantity-control button {
+    width: 40px;
+    height: 40px;
+  }
+
+  .quantity-control span {
+    width: 38px;
   }
 
   .summary-row,
@@ -1400,22 +1474,42 @@ button {
   .premium-summary-product {
     flex-direction: column;
     align-items: flex-start;
+    gap: 6px;
   }
 
   .shipping-form {
     flex-direction: column;
   }
 
+  .shipping-form input,
   .shipping-form button {
     width: 100%;
+    height: 50px;
+  }
+
+  .shipping-form button {
+    border-radius: 14px;
+  }
+
+  .cart-benefits,
+  .premium-shipping-box,
+  .shipping-result-card,
+  .delivery-confirm-card,
+  .premium-payment-box,
+  .summary-delivery-note,
+  .trust-item {
+    border-radius: 18px;
+  }
+
+  .cart-benefits-text,
+  .shipping-result-meta span,
+  .trust-item,
+  .summary-delivery-note span {
+    font-size: 0.92rem;
   }
 
   .trust-list {
     gap: 8px;
-  }
-
-  .trust-item {
-    font-size: 0.9rem;
   }
 
   .payment-methods-preview {
@@ -1425,6 +1519,8 @@ button {
   .payment-methods-preview span {
     width: 100%;
     text-align: center;
+    padding: 11px 14px;
+    border-radius: 14px;
   }
 
   .footer-grid {
@@ -1436,30 +1532,51 @@ button {
     right: 14px;
     bottom: 14px;
     padding: 12px 14px;
-    font-size: 0.95rem;
+    font-size: 0.92rem;
+    border-radius: 999px;
   }
 }
 
 @media (max-width: 560px) {
   .container {
-    width: min(100%, calc(100% - 20px));
+    width: min(100%, calc(100% - 16px));
   }
 
   .section-space,
   .page-section {
-    padding: 46px 0;
+    padding: 34px 0;
   }
 
   .hero-section {
-    padding: 48px 0 18px;
+    padding: 38px 0 16px;
+  }
+
+  .nav-wrap {
+    padding: 8px 0 10px;
+    gap: 8px;
+  }
+
+  .brand-mark {
+    font-size: 0.92rem;
   }
 
   .main-nav {
-    gap: 12px 16px;
+    gap: 8px 12px;
   }
 
   .main-nav a {
-    font-size: 0.9rem;
+    font-size: 0.86rem;
+  }
+
+  .cart-pill {
+    padding: 8px 12px;
+    gap: 8px;
+  }
+
+  .cart-pill span {
+    width: 22px;
+    height: 22px;
+    font-size: 0.8rem;
   }
 
   .hero-copy h1,
@@ -1468,14 +1585,15 @@ button {
   .product-info-panel h1,
   .showcase-text h2,
   .products-header-text h2 {
-    font-size: clamp(1.7rem, 9vw, 2.2rem);
-    line-height: 1.12;
+    font-size: clamp(1.65rem, 9vw, 2.1rem);
+    line-height: 1.1;
   }
 
   .hero-actions,
   .button-row {
     flex-direction: column;
     align-items: stretch;
+    gap: 10px;
   }
 
   .primary-button,
@@ -1485,6 +1603,42 @@ button {
     width: 100%;
     justify-content: center;
     text-align: center;
+    min-height: 48px;
+    border-radius: 14px;
+  }
+
+  .hero-media img,
+  .about-image,
+  .product-image-panel img {
+    height: 230px;
+    border-radius: 18px;
+  }
+
+  .checkout-banner img,
+  .premium-checkout-banner img {
+    height: 210px;
+    border-radius: 18px;
+  }
+
+  .checkout-banner-overlay {
+    padding: 14px;
+  }
+
+  .checkout-banner-overlay span {
+    font-size: 0.72rem;
+  }
+
+  .checkout-banner-overlay strong {
+    font-size: 0.96rem;
+    line-height: 1.15;
+  }
+
+  .product-thumb {
+    height: 210px;
+  }
+
+  .cart-item-image {
+    height: 210px;
   }
 
   .checkout-form,
@@ -1495,53 +1649,58 @@ button {
   .category-content,
   .product-content,
   .about-copy,
-  .contact-grid .card-surface {
-    padding: 18px;
+  .contact-grid .card-surface,
+  .premium-payment-box,
+  .delivery-confirm-card,
+  .cart-benefits,
+  .premium-shipping-box,
+  .shipping-result-card {
+    padding: 16px;
   }
 
-  .product-thumb {
-    height: 220px;
-  }
-
-  .hero-media img,
-  .about-image,
-  .product-image-panel img {
-    height: 240px;
+  .product-card,
+  .category-card,
+  .summary-card,
+  .checkout-form,
+  .card-surface,
+  .info-box,
+  .trust-card,
+  .cart-item,
+  .showcase-card,
+  .premium-payment-box,
+  .delivery-confirm-card,
+  .cart-benefits,
+  .premium-shipping-box,
+  .shipping-result-card,
+  .summary-delivery-note,
+  .trust-item {
     border-radius: 18px;
-  }
-
-  .checkout-banner img {
-    height: 220px;
-    border-radius: 18px;
-  }
-
-  .premium-checkout-banner img {
-    height: 220px;
-    border-radius: 18px;
-  }
-
-  .checkout-banner-overlay strong {
-    font-size: 1.05rem;
-  }
-
-  .cart-item-image {
-    height: 220px;
   }
 
   .quantity-control button {
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
   }
 
   .quantity-control span {
-    width: 32px;
+    width: 34px;
+  }
+
+  .shipping-form input,
+  .shipping-form button,
+  .checkout-form input {
+    min-height: 48px;
+  }
+
+  .payment-methods-preview span {
+    font-size: 0.88rem;
   }
 
   .floating-whatsapp {
-    right: 12px;
-    bottom: 12px;
-    padding: 11px 14px;
-    font-size: 0.9rem;
+    right: 10px;
+    bottom: 10px;
+    padding: 11px 13px;
+    font-size: 0.88rem;
   }
 
   .products-header,
@@ -1549,6 +1708,6 @@ button {
   .payment-box-head,
   .summary-head,
   .cart-benefits-head {
-    gap: 10px;
+    gap: 8px;
   }
 }
